@@ -13,6 +13,30 @@ const SEED_EXPENSES = [
   { id: 2085, advanceId: 1047, truck: "JRM-291", category: "Lubricantes", supplier: "LubriExpress", amount: 185000, date: "2026-09-30", status: "Rechazado", support: "soporte_2085.jpg", reviewer: "María Gómez", reviewedAt: "2026-10-01", reason: "El valor no coincide con el soporte." },
 ];
 
+const SEED_CATALOGS = {
+  Camiones: [
+    { id: 1, name: "TQX-482", detail: "Chevrolet FVR · 2021", active: true },
+    { id: 2, name: "JRM-291", detail: "Hino 500 · 2020", active: true },
+    { id: 3, name: "VSC-807", detail: "International 4300 · 2019", active: true },
+  ],
+  Conductores: [
+    { id: 1, name: "Carlos Mendoza", detail: "CC 1.023.456.789", active: true },
+    { id: 2, name: "Laura Peña", detail: "CC 52.741.963", active: true },
+    { id: 3, name: "Andrés Rojas", detail: "CC 79.852.147", active: false },
+  ],
+  Proveedores: [
+    { id: 1, name: "AutoPartes Central", detail: "NIT 901.458.221-3", active: true },
+    { id: 2, name: "Taller El Norte", detail: "NIT 800.147.852-1", active: true },
+    { id: 3, name: "Ruedas SAS", detail: "NIT 901.102.445-7", active: true },
+  ],
+  Categorías: [
+    { id: 1, name: "Repuestos", detail: "Partes y componentes del vehículo", active: true },
+    { id: 2, name: "Mano de obra", detail: "Servicios técnicos y de taller", active: true },
+    { id: 3, name: "Llantas", detail: "Compra, montaje y reparación", active: true },
+    { id: 4, name: "Lubricantes", detail: "Aceites, grasas y refrigerantes", active: true },
+  ],
+};
+
 const DEMO_USERS = [
   { username: "gerencia", password: "Sigma2026", name: "María Gómez", role: "Gerencia", initials: "MG" },
   { username: "administrativa", password: "Sigma2026", name: "Daniela Ruiz", role: "Administrativa", initials: "DR" },
@@ -24,8 +48,10 @@ const state = {
   user: DEMO_USERS.find((item) => item.username === localStorage.getItem("sigma-pure-session")) || null,
   role: "Técnico",
   expenseFilter: "Todos",
+  catalogKind: "Camiones",
   advances: readStorage("sigma-pure-advances", SEED_ADVANCES),
   expenses: readStorage("sigma-pure-expenses", SEED_EXPENSES),
+  catalogs: readStorage("sigma-pure-catalogs", SEED_CATALOGS),
 };
 
 const money = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
@@ -44,6 +70,7 @@ function readStorage(key, fallback) {
 function save() {
   localStorage.setItem("sigma-pure-advances", JSON.stringify(state.advances));
   localStorage.setItem("sigma-pure-expenses", JSON.stringify(state.expenses));
+  localStorage.setItem("sigma-pure-catalogs", JSON.stringify(state.catalogs));
 }
 
 function formatDate(value) {
@@ -63,6 +90,7 @@ function icon(name) {
     Resumen: '<path d="M3 13h8V3H3v10Zm10 8h8V11h-8v10ZM3 21h8v-6H3v6Zm10-12h8V3h-8v6Z"/>',
     Anticipos: '<path d="M12 2v20m5-16H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     Gastos: '<path d="M3 6h18M5 6v14h14V6M8 10h8M8 14h5"/>',
+    Catálogos: '<path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"/>',
     Reportes: '<path d="M4 19V9m6 10V5m6 14v-7m5 7H2"/>',
   };
   return `<svg aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
@@ -70,7 +98,8 @@ function icon(name) {
 
 function renderNav() {
   const pending = state.expenses.filter((item) => item.status === "Pendiente").length;
-  document.querySelector("#main-nav").innerHTML = ["Resumen", "Anticipos", "Gastos", "Reportes"].map((item) => `
+  const views = state.role === "Técnico" ? ["Resumen", "Anticipos", "Gastos", "Reportes"] : ["Resumen", "Anticipos", "Gastos", "Catálogos", "Reportes"];
+  document.querySelector("#main-nav").innerHTML = views.map((item) => `
     <button type="button" class="${state.view === item ? "active" : ""}" data-view="${item}">
       ${icon(item)}<span>${item}</span>${item === "Gastos" && pending ? `<b>${pending}</b>` : ""}
     </button>`).join("");
@@ -93,6 +122,7 @@ function render() {
   if (state.view === "Resumen") renderDashboard();
   if (state.view === "Anticipos") renderAdvances();
   if (state.view === "Gastos") renderExpenses();
+  if (state.view === "Catálogos") renderCatalogs();
   if (state.view === "Reportes") renderReports();
   bindCommonActions();
 }
@@ -171,6 +201,55 @@ function renderReports() {
     </section>`;
 }
 
+function renderCatalogs() {
+  const kind = state.catalogKind;
+  const labels = {
+    Camiones: { singular: "camión", name: "Placa", detail: "Marca, línea y modelo" },
+    Conductores: { singular: "conductor", name: "Nombre completo", detail: "Documento de identidad" },
+    Proveedores: { singular: "proveedor", name: "Razón social", detail: "NIT o identificación" },
+    Categorías: { singular: "categoría", name: "Nombre", detail: "Descripción" },
+  };
+  content.innerHTML = `
+    <div class="page-lead"><div><h2>Catálogos maestros</h2><p>Administra los datos utilizados en anticipos y gastos.</p></div>${state.role === "Administrativa" ? `<button class="primary" data-new-catalog>+ Crear ${labels[kind].singular}</button>` : ""}</div>
+    ${state.role === "Gerencia" ? '<div class="info-banner"><strong>Modo de consulta</strong><span>La creación y edición corresponde al rol Administrativa.</span></div>' : ""}
+    <div class="catalog-tabs">${Object.keys(state.catalogs).map((tab) => `<button class="${kind === tab ? "active" : ""}" data-catalog-tab="${tab}">${tab}<span>${state.catalogs[tab].filter((item) => item.active).length}</span></button>`).join("")}</div>
+    <div class="table-card"><table><thead><tr><th>${labels[kind].name}</th><th>${labels[kind].detail}</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      ${state.catalogs[kind].map((item) => `<tr><td><strong>${item.name}</strong></td><td>${item.detail}</td><td>${status(item.active ? "Activo" : "Inactivo")}</td><td><div class="row-actions">${state.role === "Administrativa" ? `<button data-edit-catalog="${item.id}">Editar</button><button class="${item.active ? "deactivate" : "activate"}" data-toggle-catalog="${item.id}">${item.active ? "Desactivar" : "Activar"}</button>` : "<span>Solo lectura</span>"}</div></td></tr>`).join("")}
+    </tbody></table></div>`;
+  document.querySelectorAll("[data-catalog-tab]").forEach((button) => button.addEventListener("click", () => { state.catalogKind = button.dataset.catalogTab; renderCatalogs(); }));
+  document.querySelector("[data-new-catalog]")?.addEventListener("click", () => openCatalogModal(null));
+  document.querySelectorAll("[data-edit-catalog]").forEach((button) => button.addEventListener("click", () => openCatalogModal(Number(button.dataset.editCatalog))));
+  document.querySelectorAll("[data-toggle-catalog]").forEach((button) => button.addEventListener("click", () => {
+    const id = Number(button.dataset.toggleCatalog);
+    state.catalogs[kind] = state.catalogs[kind].map((item) => item.id === id ? { ...item, active: !item.active } : item);
+    save(); renderCatalogs(); toast("Estado actualizado correctamente");
+  }));
+}
+
+function openCatalogModal(id) {
+  const kind = state.catalogKind;
+  const labels = {
+    Camiones: ["camión", "Placa", "Marca, línea y modelo"],
+    Conductores: ["conductor", "Nombre completo", "Documento de identidad"],
+    Proveedores: ["proveedor", "Razón social", "NIT o identificación"],
+    Categorías: ["categoría", "Nombre", "Descripción"],
+  }[kind];
+  const item = id ? state.catalogs[kind].find((entry) => entry.id === id) : null;
+  modal(`${item ? "Editar" : "Crear"} ${labels[0]}`, `Información del catálogo de ${kind.toLowerCase()}.`, `
+    <form id="catalog-form"><label>${labels[1]}<input name="name" required value="${item?.name || ""}"></label><label>${labels[2]}<input name="detail" required value="${item?.detail || ""}"></label><div class="form-actions"><button type="button" class="secondary" data-close-form>Cancelar</button><button class="primary">Guardar cambios</button></div></form>`);
+  modalRoot.querySelector("[data-close-form]").addEventListener("click", closeModal);
+  modalRoot.querySelector("#catalog-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    if (item) {
+      state.catalogs[kind] = state.catalogs[kind].map((entry) => entry.id === id ? { ...entry, name: data.get("name").trim(), detail: data.get("detail").trim() } : entry);
+    } else {
+      state.catalogs[kind].unshift({ id: Math.max(0, ...state.catalogs[kind].map((entry) => entry.id)) + 1, name: data.get("name").trim(), detail: data.get("detail").trim(), active: true });
+    }
+    save(); closeModal(); renderCatalogs(); toast("Registro guardado correctamente");
+  });
+}
+
 function bindCommonActions() {
   document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => { state.view = button.dataset.go; render(); }));
   document.querySelectorAll("[data-action='new-expense']").forEach((button) => button.addEventListener("click", openExpenseModal));
@@ -200,8 +279,8 @@ function closeModal() {
 function openAdvanceModal() {
   modal("Crear anticipo", "Asigna efectivo para el mantenimiento de un vehículo.", `
     <form id="advance-form">
-      <label>Técnico responsable<select name="technician"><option>Carlos Mendoza</option><option>Laura Peña</option></select></label>
-      <div class="field-row"><label>Camión<select name="truck"><option>TQX-482</option><option>JRM-291</option><option>VSC-807</option></select></label><label>Valor del anticipo<input name="amount" type="number" min="1" required placeholder="0"></label></div>
+      <label>Técnico responsable<select name="technician">${state.catalogs.Conductores.filter((item) => item.active).map((item) => `<option>${item.name}</option>`).join("")}</select></label>
+      <div class="field-row"><label>Camión<select name="truck">${state.catalogs.Camiones.filter((item) => item.active).map((item) => `<option>${item.name}</option>`).join("")}</select></label><label>Valor del anticipo<input name="amount" type="number" min="1" required placeholder="0"></label></div>
       <div class="form-actions"><button type="button" class="secondary" data-close-form>Cancelar</button><button class="primary">Crear anticipo</button></div>
     </form>`);
   modalRoot.querySelector("[data-close-form]").addEventListener("click", closeModal);
@@ -217,8 +296,8 @@ function openExpenseModal() {
   modal("Registrar nuevo gasto", "El gasto quedará pendiente de aprobación.", `
     <form id="expense-form">
       <label>Anticipo asociado<select name="advance" required>${state.advances.filter((item) => item.status === "Abierto").map((item) => `<option value="${item.id}">#${item.id} · ${item.truck} · ${money.format(item.amount)}</option>`).join("")}</select></label>
-      <div class="field-row"><label>Categoría<select name="category"><option>Repuestos</option><option>Mano de obra</option><option>Llantas</option><option>Lubricantes</option><option>Otros</option></select></label><label>Valor del gasto<input name="amount" type="number" min="1" required placeholder="0"></label></div>
-      <label>Proveedor<input name="supplier" required placeholder="Nombre del proveedor"></label>
+      <div class="field-row"><label>Categoría<select name="category">${state.catalogs.Categorías.filter((item) => item.active).map((item) => `<option>${item.name}</option>`).join("")}</select></label><label>Valor del gasto<input name="amount" type="number" min="1" required placeholder="0"></label></div>
+      <label>Proveedor<select name="supplier">${state.catalogs.Proveedores.filter((item) => item.active).map((item) => `<option>${item.name}</option>`).join("")}</select></label>
       <label>Soporte (foto o PDF)<input name="support" type="file" accept="image/*,.pdf" required></label>
       <div class="form-actions"><button type="button" class="secondary" data-close-form>Cancelar</button><button class="primary">Registrar gasto</button></div>
     </form>`);
@@ -273,6 +352,7 @@ function showLogin() {
 function login(user) {
   state.user = user;
   state.role = user.role;
+  state.view = "Resumen";
   localStorage.setItem("sigma-pure-session", user.username);
   document.querySelector("#login-error").textContent = "";
   render();
@@ -296,6 +376,7 @@ document.querySelector("#logout").addEventListener("click", () => {
 document.querySelector("#reset-data").addEventListener("click", () => {
   state.advances = structuredClone(SEED_ADVANCES);
   state.expenses = structuredClone(SEED_EXPENSES);
+  state.catalogs = structuredClone(SEED_CATALOGS);
   save();
   render();
   toast("Datos de demostración restaurados");

@@ -92,6 +92,18 @@ td small { display: block; color: #818b85; font-size: 10px; margin-top: 4px; }
 .status.abierto, .status.pendiente { background: #fff2d7; color: #87580e; }
 .status.aprobado, .status.legalizado { background: #e1f2e8; color: #267247; }
 .status.rechazado { background: #fde8e7; color: #a43e3b; }
+.status.activo { background: #e1f2e8; color: #267247; }
+.status.inactivo { background: #edf0ee; color: #69756e; }
+.catalog-tabs { display: flex; gap: 7px; margin-bottom: 14px; overflow-x: auto; }
+.catalog-tabs button { border: 1px solid #dfe5e1; background: white; color: #5e6c64; border-radius: 9px; padding: 9px 13px; font-weight: 700; font-size: 12px; white-space: nowrap; }
+.catalog-tabs button.active { color: white; background: #173f30; border-color: #173f30; }
+.catalog-tabs span { display: inline-grid; place-items: center; margin-left: 7px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 20px; background: #edf1ee; color: #526159; font-size: 10px; }
+.catalog-tabs button.active span { background: #dcef79; color: #173f30; }
+.row-actions { display: flex; gap: 7px; align-items: center; }
+.row-actions button { border: 1px solid #dce3de; background: white; color: #315b49; border-radius: 7px; padding: 6px 9px; font-size: 11px; font-weight: 700; }
+.row-actions button.deactivate { color: #a1453e; }.row-actions button.activate { color: #237046; }.row-actions span { color: #89928d; font-size: 11px; }
+.info-banner { display: flex; gap: 9px; background: #eaf2ed; border: 1px solid #d6e4db; color: #315443; padding: 11px 14px; border-radius: 9px; margin-bottom: 15px; font-size: 12px; }
+.info-banner span { color: #62736a; }
 .filter-bar { display: flex; gap: 5px; margin-bottom: 14px; }
 .filter-bar button { border: 1px solid #dfe5e1; background: white; color: #66736b; border-radius: 8px; padding: 7px 12px; font-size: 12px; }
 .filter-bar button.active { background: #173f30; color: white; border-color: #173f30; }
