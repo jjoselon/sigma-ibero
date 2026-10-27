@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SIGMA - Control de gastos de mantenimiento de flota" />
+    <title>SIGMA | Control de mantenimiento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="login-screen" class="login-page">
+      <section class="login-card">
+        <div class="login-brand"><div class="brand-mark">S</div><div><strong>SIGMA</strong><span>Control de mantenimiento</span></div></div>
+        <div class="login-copy"><span class="eyebrow">Acceso al prototipo</span><h1>Bienvenido de nuevo</h1><p>Ingresa con uno de los usuarios ficticios para explorar sus permisos.</p></div>
+        <form id="login-form">
+          <label>Usuario<input name="username" autocomplete="username" required placeholder="Ej. gerencia" /></label>
+          <label>Contraseña<input name="password" type="password" autocomplete="current-password" required placeholder="••••••••" /></label>
+          <p id="login-error" class="login-error"></p>
+          <button class="primary login-submit">Iniciar sesión</button>
+        </form>
+        <div id="demo-users" class="demo-credentials"></div>
+      </section>
+    </div>
+    <div id="application" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">S</div>
+          <div><strong>SIGMA</strong><span>Control de mantenimiento</span></div>
+        </div>
+        <nav id="main-nav" aria-label="Navegación principal"></nav>
+        <div class="scope-note">
+          <span>Prototipo académico</span>
+          <p>Datos ficticios guardados únicamente en este navegador.</p>
+          <button id="reset-data" type="button">Restaurar datos</button>
+        </div>
+      </aside>
+
+      <main>
+        <header>
+          <div><span id="current-date" class="eyebrow date-current"></span><h1 id="page-title">Resumen</h1></div>
+          <div class="user-tools">
+            <div id="user-avatar" class="avatar">MG</div>
+            <div class="user-name"><strong id="user-name">María Gómez</strong><span id="role-label">Gerencia</span></div>
+            <button id="logout" class="logout-button">Salir</button>
+          </div>
+        </header>
+        <div id="app-content" class="content"></div>
+      </main>
+    </div>
+
+    <div id="modal-root"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
